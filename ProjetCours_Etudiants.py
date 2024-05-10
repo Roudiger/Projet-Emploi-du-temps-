@@ -1,148 +1,161 @@
 import mysql.connector
-import re
+import random
+import copy
 
-# Fonction pour se connecter à la base de données
-def connect_to_database():
-    try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="Utopie39*",
-            database="projetinfo"
-        )
-        print("Connexion à la base de données réussie.")
-        return conn
-    except mysql.connector.Error as err:
-        print(f"Erreur de connexion à la base de données : {err}")
-        return None
+def fetch_data(cursor, table_name):
+    cursor.execute(f"SELECT * FROM {table_name}")
+    data = cursor.fetchall()
+    columns = [col[0] for col in cursor.description]
+    return [dict(zip(columns, row)) for row in data]
 
-# Fonction pour récupérer les matières depuis la base de données
-def get_matieres(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT ID_Matiere, Nom FROM Matieres")
-        return cursor.fetchall()
-    except mysql.connector.Error as err:
-        print(f"Erreur lors de la récupération des matières : {err}")
-        return []
 
-# Fonction pour récupérer les disponibilités des professeurs pour une matière donnée
-def get_professor_availability(conn, id_matiere):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT p.ID_Professeur, d.JourSemaine, d.HeureDebut, d.HeureFin
-            FROM Professeurs p
-            JOIN Disponibilites d ON p.ID_Professeur = d.ID_Professeur
-            WHERE d.ID_Professeur IN (SELECT ID_Professeur FROM Matieres WHERE ID_Matiere = %s)
-        """, (id_matiere,))
-        return cursor.fetchall()
-    except mysql.connector.Error as err:
-        print(f"Erreur lors de la récupération des disponibilités des professeurs : {err}")
-        return []
+def generate_initial_timetable(cours, professeurs, matieres, salles):
+    initial_timetable = {}
 
-# Fonction pour récupérer les disponibilités des salles
-def get_room_availability(conn, capacite_requise):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT ID_Salle, JourSemaine, HeureDebut, HeureFin
-            FROM Disponibilites_salle
-            WHERE Capacite >= %s
-        """, (capacite_requise,))
-        return cursor.fetchall()
-    except mysql.connector.Error as err:
-        print(f"Erreur lors de la récupération des disponibilités des salles : {err}")
-        return []
+    # Création d'une structure de données pour stocker les cours
+    for course in cours:
+        jour = course['JourSemaine']
+        heure_debut = str(course['HeureDebut'])
+        if jour not in initial_timetable:
+            initial_timetable[jour] = {}
+        if heure_debut not in initial_timetable[jour]:
+            initial_timetable[jour][heure_debut] = []
 
-# Fonction pour valider le format de l'heure
-def validate_time_format(time_str):
-    if re.match(r'^\d{2}:\d{2}$', time_str):
-        return True
-    return False
+        # Récupération des informations sur le professeur, la matière et la salle
+        professeur = next(prof for prof in professeurs if prof['ID_Professeur'] == course['ID_Professeur'])
+        matiere = next(mat for mat in matieres if mat['ID_Matiere'] == course['ID_Matiere'])
+        salle = next(sal for sal in salles if sal['ID_Salle'] == course['ID_Salle'])
 
-# Fonction pour trouver un créneau disponible pour le cours
-def find_available_slot(professor_availability, room_availability, duree_cours):
-    for prof_availability in professor_availability:
-        for room_availability in room_availability:
-            if prof_availability[1] == room_availability[1]:  # Même jour
-                start_time = max(prof_availability[2], room_availability[2])
-                end_time = min(prof_availability[3], room_availability[3])
-                if end_time - start_time >= duree_cours:
-                    return prof_availability[1], start_time, start_time + duree_cours
-    return None, None, None
+        # Ajout du cours à la structure de données
+        initial_timetable[jour][heure_debut].append({
+            'Professeur': professeur,
+            'Matiere': matiere,
+            'Salle': salle,
+            'Heure fin': str(course['HeureFin'])
+        })
 
-# Fonction pour planifier un cours pour une matière donnée
-def schedule_course(conn, id_matiere, id_salle, jour, heure_debut, heure_fin):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO Cours_Etudiants (ID_Professeur, ID_Matiere, ID_Salle, JourSemaine, HeureDebut, HeureFin)
-            VALUES (
-                (SELECT ID_Professeur FROM Matieres WHERE ID_Matiere = %s),
-                %s, %s, %s, %s, %s
-            )
-        """, (id_matiere, id_matiere, id_salle, jour, heure_debut, heure_fin))
-        conn.commit()
-        print("Cours planifié avec succès.")
-    except mysql.connector.Error as err:
-        print(f"Erreur lors de la planification du cours : {err}")
+    return initial_timetable
+
+def evaluate_timetable(timetable, disponibilites, capacites_salles):
+    conflicts_salle = 0
+    conflicts_professeur = 0
+    capacity_constraints = 0
+    prof_availability_constraints = 0
+    individual_preferences = 0
+
+    for jour, heures in timetable.items():
+        for heure, cours in heures.items():
+            for course in cours:
+                salle = course['Salle']
+                professeur = course['Professeur']
+                heure_debut = heure
+                heure_fin = course['Heure fin']
+
+                # Vérification des conflits de salle
+                salle_dispo = [disp for disp in disponibilites if disp[1] == jour and disp[2] <= heure_debut and disp[3] >= heure_fin and disp[0] == salle]
+                if not salle_dispo:
+                    conflicts_salle += 1
+
+                # Vérification des conflits de professeur
+                prof_dispo = [disp for disp in disponibilites if disp[1] == jour and disp[2] <= heure_debut and disp[3] >= heure_fin and disp[0] == professeur]
+                if not prof_dispo:
+                    conflicts_professeur += 1
+
+                # Vérification des contraintes de capacité des salles
+                if capacites_salles[salle] < len(cours):
+                    capacity_constraints += 1
+
+                # Vérification des contraintes de disponibilité des professeurs
+                if not prof_dispo:
+                    prof_availability_constraints += 1
+
+                # Vérification des préférences individuelles (non implémentées)
+
+    evaluation = {
+        'conflicts_salle': conflicts_salle,
+        'conflicts_professeur': conflicts_professeur,
+        'capacity_constraints': capacity_constraints,
+        'prof_availability_constraints': prof_availability_constraints,
+        'individual_preferences': individual_preferences
+    }
+
+    return evaluation
+
+def generate_neighborhood(timetable):
+    # Génère un voisinage en effectuant un échange aléatoire de deux cours
+    # Nous allons simplement choisir deux cours aléatoires et échanger leurs horaires
+    new_timetable = copy.deepcopy(timetable)
+
+    # Choix aléatoire d'un jour et d'une heure
+    jour1 = random.choice(list(new_timetable.keys()))
+    heure1 = random.choice(list(new_timetable[jour1].keys()))
+
+    # Choix aléatoire d'un autre jour et d'une autre heure
+    jour2 = random.choice(list(new_timetable.keys()))
+    heure2 = random.choice(list(new_timetable[jour2].keys()))
+
+    # Échange des cours entre les deux horaires
+    cours1 = new_timetable[jour1][heure1]
+    cours2 = new_timetable[jour2][heure2]
+    new_timetable[jour1][heure1] = cours2
+    new_timetable[jour2][heure2] = cours1
+
+    return new_timetable
+
+def recherche_locale(initial_timetable, disponibilites, capacites_salles, max_iterations=1000):
+    current_timetable = initial_timetable
+    best_timetable = initial_timetable
+    best_evaluation = evaluate_timetable(initial_timetable, disponibilites, capacites_salles)
+
+    iterations = 0
+    while iterations < max_iterations:
+        new_timetable = generate_neighborhood(current_timetable)
+        new_evaluation = evaluate_timetable(new_timetable, disponibilites, capacites_salles)
+
+        if new_evaluation['conflicts_salle'] + new_evaluation['conflicts_professeur'] + new_evaluation['capacity_constraints'] + new_evaluation['prof_availability_constraints'] + new_evaluation['individual_preferences'] < best_evaluation['conflicts_salle'] + best_evaluation['conflicts_professeur'] + best_evaluation['capacity_constraints'] + best_evaluation['prof_availability_constraints'] + best_evaluation['individual_preferences']:
+            best_timetable = new_timetable
+            best_evaluation = new_evaluation
+
+        current_timetable = new_timetable
+        iterations += 1
+
+    return best_timetable
+
+def optimize_timetable(cursor, conn):
+    # Fetching data
+    cours = fetch_data(cursor, "Cours_Etudiants")
+    professeurs = fetch_data(cursor, "Professeurs")
+    matieres = fetch_data(cursor, "Matieres")  # Ajout pour récupérer les données des matières
+    salles = fetch_data(cursor, "Salles")
+    disponibilites = fetch_data(cursor, "Disponibilites")
+
+    # Récupération des capacités des salles
+    capacites_salles = {salle['ID_Salle']: salle['Capacite'] for salle in salles}
+
+    # Création d'un emploi du temps initial
+    initial_timetable = generate_initial_timetable(cours, professeurs, matieres, salles)
+
+    # Optimisation de l'emploi du temps
+    optimized_timetable = recherche_locale(initial_timetable, disponibilites, capacites_salles)
+
+    return optimized_timetable
 
 def main():
     # Connexion à la base de données
-    conn = connect_to_database()
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="Utopie39*",
+        database="projetinfo"
+    )
     if not conn:
+        print("Erreur de connexion à la base de données.")
         return
 
-    # Récupérer les matières enseignées
-    matieres = get_matieres(conn)
+    cursor = conn.cursor()
 
-    # Afficher les matières et demander à l'utilisateur de choisir une matière
-    print("Liste des matières :")
-    for matiere in matieres:
-        print(f"{matiere[0]}. {matiere[1]}")
-    while True:
-        try:
-            id_matiere = int(input("Entrez le numéro de la matière pour laquelle vous voulez planifier un cours : "))
-            if any(id_matiere == matiere[0] for matiere in matieres):
-                break
-            else:
-                print("Veuillez entrer un numéro de matière valide.")
-        except ValueError:
-            print("Veuillez entrer un numéro de matière valide.")
-
-    # Récupérer la durée du cours pour la matière sélectionnée
-    while True:
-        duree_cours = input("Entrez la durée du cours pour cette matière (HH:MM) : ")
-        if validate_time_format(duree_cours):
-            break
-        else:
-            print("Veuillez entrer une durée valide au format HH:MM.")
-
-    # Récupérer les disponibilités des professeurs pour cette matière
-    professor_availability = get_professor_availability(conn, id_matiere)
-
-    # Récupérer la capacité requise pour la salle en fonction du nombre d'étudiants
-    while True:
-        try:
-            nombre_etudiants = int(input("Entrez le nombre d'étudiants pour ce cours : "))
-            capacite_requise = nombre_etudiants + 5  # Ajouter une marge de sécurité
-            break
-        except ValueError:
-            print("Veuillez entrer un nombre valide.")
-
-    # Récupérer les disponibilités des salles en fonction de la capacité requise
-    room_availability = get_room_availability(conn, capacite_requise)
-
-    # Trouver un créneau disponible pour le cours
-    jour, heure_debut, heure_fin = find_available_slot(professor_availability, room_availability, duree_cours)
-
-    # Planifier le cours si un créneau est trouvé
-    if jour and heure_debut and heure_fin:
-        id_salle = room_availability[0]  # Sélectionner la première salle disponible
-        schedule_course(conn, id_matiere, id_salle, jour, heure_debut, heure_fin)
-    else:
-        print("Impossible de trouver un créneau disponible pour ce cours.")
+    # Optimisation de l'emploi du temps
+    optimized_timetable = optimize_timetable(cursor, conn)
 
     # Fermeture de la connexion à la base de données
     conn.close()
