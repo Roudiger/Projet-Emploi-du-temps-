@@ -102,7 +102,7 @@ def generate_neighborhood(timetable):
 
     return new_timetable
 
-def recherche_locale(initial_timetable, disponibilites, capacites_salles, max_iterations=1000):
+def recherche_locale(initial_timetable, disponibilites, capacites_salles, max_iterations=10000000000000000000000000000000000000000000000):
     current_timetable = initial_timetable
     best_timetable = initial_timetable
     best_evaluation = evaluate_timetable(initial_timetable, disponibilites, capacites_salles)
