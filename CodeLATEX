@@ -1,1 +1,325 @@
 
+\documentclass[a4paper, 12pt, twoside]{article}
+\usepackage[utf8]{inputenc}        % LaTeX, comprend les accents !
+\usepackage[T1]{fontenc}        
+\usepackage[francais]{babel}
+\usepackage{lmodern}
+\usepackage{ae,aecompl}
+\usepackage[top=2.5cm, bottom=2cm, 
+            left=3cm, right=2.5cm,
+            headheight=15pt]{geometry}
+\usepackage{graphicx}
+\usepackage{eso-pic} % Nécessaire pour mettre des images en arrière plan
+\usepackage{array} 
+\usepackage{hyperref}
+\input{pagedegarde}
+\title{Générateur d'emploi du temps}
+\datedebut{1 février au 10 mars 2024}
+
+
+\membrea{Redouane Ladjouze 43005279}
+\membreb{Aro Alexandre Harimanana 43011072}
+\membrec{Marius Doideau 43015481}
+\begin{document}
+\pagedegarde
+\newpage
+
+\tableofcontents
+\newpage
+Voici le code qui a permis de créer ce document pdf: \url{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/CodeLATEX}
+\newpage
+\section{Introduction}
+Nous avons choisi de travailler sur un projet de générateur d'emplois du temps informatique parmi les différentes options qui nous étaient proposées. Ce choix s'est principalement basé sur plusieurs critères qui ont suscité notre intérêt et notre motivation à travailler sur ce projet en particulier. Tout d'abord, la diversité des langages informatiques requis pour mener à bien ce projet nous a semblé enrichissante. En effet, la création d'un générateur d'emplois du temps implique une compréhension approfondie de plusieurs aspects, tels que la gestion de données, la logique de programmation et l'interface utilisateur. Ensuite, l'utilité pratique d'un tel outil dans de nombreuses situations a renforcé notre conviction quant à l'importance de ce projet. En effet, la possibilité de concevoir un emploi du temps personnalisé et efficace présente un intérêt non seulement pour les étudiants, mais également pour les enseignants, les entreprises ou toute organisation devant gérer des plannings complexes. Ainsi, ce projet nous offre l'opportunité de mettre en pratique nos connaissances en informatique tout en contribuant à la résolution d'un problème réel et pertinent. Dans cette optique, notre objectif est de concevoir un générateur d'emplois du temps qui soit à la fois fonctionnel, intuitif et adaptable à différents besoins et contextes.
+
+
+\newpage
+
+\section{Environnement de travail}
+Pour optimiser notre environnement de développement, nous avons fait le choix d'adopter PyCharm. Cette décision repose sur plusieurs critères qui ont été déterminants pour notre équipe. Tout d'abord, nous avons été séduits par l'interface intuitive de PyCharm, qui facilite grandement la prise en main de l'IDE. De plus, l'installation et la gestion des bibliothèques Python se font de manière transparente, ce qui nous permet de rester concentrés sur notre travail de développement sans perdre de temps sur des configurations techniques.\\
+En ce qui concerne la gestion de nos données, nous avons opté pour MySQL. Cette solution s'est imposée comme le choix idéal pour nos besoins en matière de bases de données. L'intégration de MySQL avec PyCharm est particulièrement fluide, ce qui simplifie le transfert et la manipulation des données directement depuis notre IDE. Grâce à cette combinaison d'outils, nous sommes en mesure d'assurer une gestion efficace et optimale de nos données tout au long du processus de développement.\\
+Pour la présentation des résultats et l'analyse des données, nous avons fait appel à Microsoft Excel. Cet outil nous offre une grande flexibilité dans la mise en forme des données et nous permet de créer des visualisations claires et percutantes grâce à ses fonctionnalités avancées de tableur. Bien que l'exportation des données depuis MySQL vers Excel n'ait pas été totalement réussie, nous aurions pu exploiter pleinement le potentiel de ces deux outils pour créer des rapports détaillés et des visualisations de données efficaces.\\
+Enfin, pour assurer une coordination optimale entre les membres de notre équipe, nous avons utilisé GitHub. En créant un projet partagé sur cette plateforme, nous avons pu centraliser l'ensemble de nos programmes, depuis la base de données jusqu'à l'affichage graphique des résultats. Cette approche collaborative nous a permis de travailler de manière synchronisée et efficace, en garantissant une bonne cohésion au sein de l'équipe tout au long du projet. Voici le lien de GitHub pour notre partage des programmes, en cliquant ici:\url{https://github.com/Bibidu785/projetinfo} \\
+Pour faciliter votre lecture et la recherche des programmes que vous devez utiliser, nous avons créé un nouveau répertoire pour tout ce qui est vraiment important. Si vous souhaitez y accéder, cliquez ici:\url{https://github.com/Roudiger/Projet-Emploi-du-temps-}
+\newpage
+
+\section{Description du projet et objectifs}
+	\subsection{Objectifs du projet}
+1. Recueillir les informations nécessaires, y compris les disponibilités des professeurs, les disponibilités des salles, les matières enseignées et les contraintes de temps.\\
+
+2. Analyser les données collectées pour identifier les contraintes de temps, telles que les heures de cours disponibles, les créneaux horaires préférés, les disponibilités des salles, etc. En outre, tenir compte des préférences individuelles des professeurs et des étudiants, comme les heures de travail préférées, les préférences de salle, etc.\\
+
+3. Établir des règles pour la création d'emplois du temps, en tenant compte des contraintes de temps et des préférences des professeurs. Par exemple, s'assurer qu'aucun cours ne se chevauche, respecter les disponibilités des salles et des professeurs, etc.\\
+
+4. Concevoir un algorithme qui utilise les données collectées et les règles définies pour générer un emploi du temps optimal. Cet algorithme devrait être capable de prendre en compte les contraintes de temps et de ressources tout en satisfaisant les préférences individuelles dans la mesure du possible.\\
+\\
+
+5. Enregistrer les données de l'emploi du temps généré dans un fichier Excel pour une visualisation facile.\\
+Ce que nous rêvions de faire était de créer un affichage de ce type, veuillez prendre et tester le programme en cliquant sur "\href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/AFFICHAGEEXCELEDT.py}{AFFICHAGEEXCELEDT.py}"
+
+ 
+	\subsection{Description du projet}
+ Tout d'abord qu'est-ce qu'un emploi du temps? Un emploi du temps est un plan ou un calendrier qui organise les activités, les tâches ou les obligations d'une personne  ou d'un groupe sur une période donnée, généralement sur une journée, une semaine ou un mois. Il est utilisé pour structurer et gérer efficacement le temps en indiquant quand et où chaque activité doit se dérouler. Les emplois du temps sont couramment utilisés dans les écoles, les entreprises et d'autres contextes pour coordonner les horaires des cours, des réunions, des projets et d'autres engagements.\\
+Dans notre projet de création d'emploi du temps, notre équipe a travaillé dur pour développer une solution qui répond aux besoins complexes de planification. Notre objectif principal était de concevoir un système capable de prendre en compte une variété de contraintes et de préférences tout en générant des emplois du temps optimisés pour les étudiants, les enseignants, et les salles.\\
+
+Pour cela, nous avons utilisé Python pour le développement logiciel et MySQL comme base de données pour stocker les informations essentielles telles que les professeurs, les matières, les salles, les classes et les disponibilités. Notre approche a été axée sur la flexibilité et la facilité d'utilisation, avec une interface utilisateur simple en ligne de commande. Vous pouvez visualiser notre base de donnée sql qui est le lien suivant que vous pouvez cliquer: \url{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/BASE%20DE%20DONNEES.sql}\\
+
+Voici un aperçu des principales fonctionnalités que notre projet offre :\\
+1.Gestion des professeurs : Les utilisateurs peuvent ajouter de nouveaux professeurs et spécifier leurs disponibilités pour chaque jour de la semaine.
+\\
+2.Création de matières :Notre système permet la création de matières avec l'attribution de professeurs responsables, facilitant ainsi la planification des cours.
+\\
+3.Gestion des salles :Les utilisateurs peuvent ajouter de nouvelles salles et spécifier leurs disponibilités, ce qui permet une allocation efficace des ressources de salle.
+\\
+4.Création de classes :Notre système prend en charge la création de classes et permet l'ajout d'élèves à ces classes, ce qui est essentiel pour la planification des cours et des activités éducatives.
+\\
+5.Planification des cours : Une fonctionnalité clé de notre système est la capacité à planifier automatiquement des cours en trouvant des créneaux horaires disponibles en fonction des disponibilités des professeurs et des salles.
+\newpage
+\section{Bibliothèques, Outils et technologies}
+Nous avons réalisé le projet en Python avec l'affichage effectué dans un fichier Excel. Pour les bibliothèques Python, nous avons utilisé:\\
+La bibliothèque Faker, qui génère des noms et prénoms aléatoires pour tester notre projet. Comme vous pouvez le voir dans cette fonction  \url{https://github.com/Bibidu785/projetinfo/blob/main/SALLES.pyet} et voici un exemple\\
+\includegraphics{1.png}\\
+\caption{Professeur, Versionfaker}\\
+La bibliothèque mysql.connector pour relier la base de données au code Python sur PyCharm.\\
+La bibliothèque random qui nous a permis de générer la capacité des salles aléatoires.\\
+\includegraphics{2.png}\\
+\caption{Salles, Version randomisé}\\
+La bibliothèque datetime pour transformer les données entrées en unité de temps (heure, minutes).\\
+La bibliothèque copy qui sert à copier-coller les données plus facilement.\\
+Les bibliothèques openpyxl qui servent à afficher les emplois du temps sur Excel. Nous avons aussi utilisé une dérivé :\\ 
+openpyxl.styles qui permet une mise en page et de colorier dans le fichier Excel.\\
+
+
+\newpage
+
+\section{Travail réalisé}
+la liste des fonctionnalités prévue et distinguer celles qui sont réalisées de celles non réalisées.
+Lorsqu'une fonctionnalité n'a pas été réalisée, il est très important de donner les raisons.La répartition RÉELLE du travail entre les membres du groupe.\\
+Tout d'abord, nous avons réalisé une base de donnée MySQL en vue de stocker les informations nécessaires à la génération des emplois du temps. Dans un second temps,pour effectuer plusieurs test, nous avons remplis la table professeur à partir de la bibliothèque faker pour tester et garder les noms de professeurs anonymes.Ainsi que la table horraire des professeurs et de la capacité des salles à partir de la bibliotheque random, comme vu ici 
+\url{https://github.com/Bibidu785/projetinfo/blob/main/SALLES.pyet} \\
+Egalement, nous avons donné l'option à l'utilisateur de rentrer les données via l'interface ci dessous.\\
+\includegraphics{MENU1.png}\\
+Voici un exemple d'utilisation avec l'option numero 1 : ajouter un professeur \\ \includegraphics{FD.png}\\, Puis après vous saisissez la les disponibilités, le professeur créé a toute les disponibilité de 8h à 20h et du lundi au vendredi vous devez saisir les valeur auquel voulez suprrimer avec le numéro associé.\\
+\includegraphics{HEURE.png}\\
+ainsi, les données seront directement enregistrées dans votre base données MySQL. Pour le reste, pour les matières et les salles ça reste le même principe.\\
+Enfin, avec l'optimisation, l'utilisateurs peut obtenir un emploi du temps cohérent et fonctionnel. Néanmoins, nous n'avons pas pu finir de rattacher le code d'affichage avec le code d'optimisation. Toutefois, nous avons intégré des données aléatoires pour vous donner un aperçu concret du rendu final de l'emploi du temps.
+\\
+Pour la répartition des taches, en premier lieu, Redouane et Aro se sont occupés de la base de données ainsi que son remplissage en se répartissant les différentes tables.
+Ensuite , Redouane s'est chargé de l'optimisation du générateur d'emplois du temps, afin d'obtenir  un emploi du temps cohérent avec des cours qui ne se chevauchent pas et qui s'adaptent aux horaires et contraintes de chaque professeur par rapport à la disponibilité des salles.
+Pendant que Redouane finissait l'optimisation, Aro préparait l'affichage des emplois du temps au format Excel, en effectuant des tests avec diverses variables factices pour s'assurer le fonctionnement du programme.
+Enfin,Marius a pris en charge la rédaction et la mise en forme du document LaTeX, ainsi que la gestion du dépôt GitHub, afin de faciliter la lecture et la recherche des programmes.
+
+\section{Difficultés rencontrées}
+Au tout debut du projet, nous n'avions pas bien compris le principe de base de donnée. On rentrait directement les données dans le code python au lieu de créer une table de données en SQL.\\
+La seconde difficulté rencontrer a été le choix du langage. Nous voulions le faire en flask et html, mais cela a été difficile car nous ne connaissions aucun des deux langage..\\
+la troisième difficulté a été d'installer la base de donnée mySQL car elle ne se reliait pas au code python pour Redouane et ne fonctionnait pas pour Aro pour des raisons de nom d'utilisateur et de mot de passe.\\
+la quatrième difficulté a été l'optimisation. La table horaire des professeurs nous a posés beaucoup de difficulté, la base de données fonctionnait seulement sur certain ordinateur. Par exemple la table professeur fonctionnait chez Aro et Marius mais pas chez Redouane et chez Redouane la table salle fonctionnait mais pas chez les 2 autres. Nous ne savions aussi pas par où commencer l'optimisation.\\
+la cinquième difficulté a été l'affichage en html, c'est pour cela que nous avons réglés ce problème avec l'utilisation d'une sauvegarde des cours optimisés dans un tableau excel grâce à la bibliothèque openpyxl que nous avons pu dévouvrir grâce à notre progression dans notre projet et de nos demandes avec les IA.
+
+\section{Bilan}
+	\subsection{Conclusion}
+ Notre expérience de projet en informatique a été véritablement enrichissante, nous permettant d'appliquer de manière concrète les nombreux concepts et compétences que nous avons acquises tout au long de notre projet.\\
+ Nous avons su atteindre nos objectifs principaux avec succès, en parvenant à développer un programme fonctionnel répondant aux besoins spécifiques de l'utilisateur. Au-delà de ces réalisations, ce projet a également été l'occasion pour nous de consolider notre cohésion en tant que groupe, d'affiner nos compétences en résolution de problèmes et d'approfondir notre compréhension du processus de développement logiciel dans son ensemble. Cette expérience nous a permis d'appréhender de manière plus concrète les défis et les opportunités offerts par le monde de l'informatique, tout en nous préparant à relever de nouveaux défis dans le futur.
+	\subsection{Perspectives}
+Malgré les accomplissements de notre projet, il demeure des opportunités d'amélioration et des voies à explorer pour aller encore plus loin dans notre projet. En regardant vers l'avenir, plusieurs perspectives se présentent à nous. Tout d'abord, nous pourrions envisager d'intégrer de nouvelles fonctionnalités afin d'enrichir davantage notre projet et de répondre encore mieux aux besoins des utilisateurs. Par exemple, l'ajout de fonctionnalités de personnalisation avancées avec des choix plux larges pourraient être des pistes intéressantes à explorer. De plus, une attention particulière pourrait être portée à l'amélioration de l'aspect visuel de notre application, en intégrant des éléments graphiques plus attractifs et intuitifs pour l'utilisateur. \\
+Enfin, l'exploration de nouvelles bibliothèques et de langages alternatifs pourrait nous permettre d'offrir une expérience utilisateur plus riche et plus fluide. En somme, notre projet constitue une étape importante dans notre parcours, mais il ouvre également la voie à de nouvelles possibilités d'innovation et de perfectionnement.
+
+
+\newpage
+\section{Bibliographie}
+Aucun livre n'a été utilisé dans la réalisation de ce projet.
+\end{thebibliography}
+
+\section{Webographie}
+\begin{thebibliography}{2}
+Pour comprendre comment installer MySQL, une vidéo sur YouTube de la chaîne "Comprendre l'informatique" a été consultée.\\
+
+Pour une introduction à Flask, une autre ressource vidéo sur YouTube de la chaîne "Numérique et informatique à Mounier" a été utilisée, bien que cette idée ait été abandonnée par la suite.\\
+
+Nous avons utilisé différentes intelligences artificielles pour poser des questions tout au long du projet : ChatGPT, Mistrale et Copilot de Microsoft.
+
+\end{thebibliography}
+\section*{Remerciements}
+ Que la force soit avec vous, Thibault ANANI, notre guide dans cette galaxie académique. Vos conseils ont illuminé notre chemin tel un sabre laser dans l'obscurité, nous permettant de triompher des épreuves et d'avancer avec assurance dans notre quête de savoir.
+
+\newpage
+\section{Annexes}
+\appendix
+\makeatletter
+\def\@seccntformat#1{Annexe~\csname the#1\endcsname:\quad}
+\makeatother
+	\section{Cahier des charges}
+
+Le générateur d'emplois du temps automatisé est un projet visant à développer un outil informatique avancé, capable de créer des emplois du temps optimisés pour les professeurs, en prenant en compte un large éventail de contraintes et de préférences individuelles.
+
+\subsection{Objectifs du projet}
+
+Les objectifs principaux de ce projet sont les suivants :
+
+\begin{itemize}
+    \item Concevoir et développer un générateur d'emplois du temps intuitif et fonctionnel.
+    \item Collecter et stocker les informations pertinentes, telles que les disponibilités des professeurs et des salles, dans une base de données MySQL.
+    \item Analyser les données collectées afin d'identifier les contraintes de temps et les préférences de chaque professeur.
+    \item Générer automatiquement des emplois du temps cohérents et optimisés, en tenant compte des contraintes, des préférences et de la disponibilité des salles.
+    \item Fournir une interface utilisateur conviviale pour la saisie des données et la visualisation des emplois du temps, qui seront exportés au format Excel à l'aide de la bibliothèque openpyxl de Python.
+\end{itemize}
+
+\subsection{Description du projet}
+
+Le générateur d'emplois du temps sera développé en utilisant le langage de programmation Python, avec une base de données MySQL pour le stockage des informations. L'interface utilisateur sera conçue pour être aussi intuitive que possible, et les emplois du temps générés pourront être facilement exportés au format Excel pour une utilisation ultérieure.
+
+\subsection{Besoins fonctionnels}
+
+Les fonctionnalités clés du générateur d'emplois du temps incluront :
+
+\begin{enumerate}
+    \item La saisie des disponibilités des professeurs et des salles.
+    \item La génération automatique d'emplois du temps, en fonction des contraintes et des préférences individuelles.
+    \item La visualisation des emplois du temps générés sous forme de tableaux.
+    \item La possibilité de modifier manuellement les emplois du temps générés, si nécessaire.
+\end{enumerate}
+
+\subsection{Planning et livrables}
+
+Le projet sera développé en plusieurs étapes, avec des livrables prévus pour chacune d'entre elles :
+
+\subsubsection{Étape 1 : Conception de la base de données}
+
+\begin{itemize}
+    \item Conception de la structure de la base de données.
+    \item Création des tables nécessaires au stockage des informations sur les professeurs, les salles et les emplois du temps.
+    \item Mise en place des relations entre les différentes tables.
+\end{itemize}
+
+\subsubsection{Étape 2 : Développement du générateur d'emplois du temps}
+
+\begin{itemize}
+    \item Développement des algorithmes de génération d'emplois du temps.
+    \item Intégration des fonctionnalités de collecte des disponibilités et de gestion des contraintes.
+\end{itemize}
+
+\subsubsection{Étape 3 : Intégration de l'interface utilisateur}
+
+\begin{itemize}
+    \item Conception de l'interface utilisateur pour la saisie des données.
+    \item Intégration de la fonctionnalité de visualisation des emplois du temps générés.
+\end{itemize}
+
+\subsubsection{Étape 4 : Tests et validation}
+
+\begin{itemize}
+    \item Réalisation de tests unitaires pour chaque composant du système.
+    \item Validation du programme en conditions réelles d'utilisation, en simulant différentes situations.
+\end{itemize}
+
+\subsubsection{Étape 5 : Documentation et formation}
+
+\begin{itemize}
+    \item Rédaction de la documentation technique et utilisateur.
+    \item Formation du personnel chargé de l'utilisation et de la maintenance de l'outil.
+\end{itemize}
+
+\subsection{Glossaire}
+
+\begin{itemize}
+    \item \textbf{Professeur} : Personnel enseignant responsable de la dispense des matières scolaires.
+    \item \textbf{Salle} : Espace physique dédié à l'enseignement et aux activités scolaires.
+    \item \textbf{Matière} : Ensemble des connaissances et des compétences à acquérir dans le cadre d'un enseignement scolaire.
+    \item \textbf{Classe} : Groupe d'élèves regroupés par niveau scolaire et suivant un enseignement commun.
+    \item \textbf{Emploi du temps} : Planification détaillée des cours et des activités scolaires pour une période donnée.
+\end{itemize}
+
+ 
+
+
+
+	\section{Manuel utilisateur}
+Avant toute chose veuillez bien utiliser notre base de données et notre programme qui se nomme PROJETFINALEDT.py si jamais vous rencontrez des problèmes sur un point sachez que nous avons fais en sorte de diviser le programme principale en sous-programmes qui sont intituler de manière intuitif sur Github\\
+Lien de notre base de données: \url{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/BASE%20DE%20DONNEES.sql}\\
+Lien du programme final:\url{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/PROJETFINALEDT.py}\\
+Avant tenez bien en compte de toujours mettre et creer sur votre IDE un lien avec la base de donnée avec votre mot de passe, car les informations sont ensuite insérées dans la base de données. Assurez-vous d'avoir configuré une base de données MySQL nommée projetinfo avec les tables appropriées avant d'exécuter le script.
+\subsection{Saisie des profs}
+Après être sur le menu principal lorsque vous lancez le programme vous tapez sur 1 pour saisir un professeur ( si jamais vous rencontrez des problèmes cliquez sur " \href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/projetPROF.py}{projetPROF.py}")\\
+Lors de l'ajout d'un professeur, l'utilisateur saisit le nom et le prénom du professeur, puis spécifie ses disponibilités pour chaque jour de la semaine et les heures de la journée. Les heures disponibles sont affichées de 8h à 20h, et l'utilisateur peut sélectionner les heures auxquelles le professeur est indisponible. .
+\subsection{Saisie des matières et association aux professeurs}\\
+ 
+    
+Si vous êtes arrivé ici c'est que vous avez réussi à saisir au moins un professeur ( si jamais vous rencontrez des problèmes cliquez sur " \href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/projetMATIERE.py}{projetMATIERE.py}")\\
+Vous devez dès lors, au menu principal cliquez sur 2, cela va vous créer une matiere qui va vous demander son nom, puis de saisir un professeur existant dans votre base de données. Et enfin de lui attribuer le nombre de cours qu'il aura par semaine avec sa durée total de cette matière.
+\subsection{Saisie classes et élèves }
+Si vous êtes arrivé ici c'est que vous avez réussi à saisir au moins une matière ( si jamais vous rencontrez des problèmes cliquez sur " \href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/projetClasses_ELEVES.py}{projetClasses_ELEVES.py}")\\
+Cette partie permet à l'utilisateur de créer des classes en spécifiant leur nom, puis d'ajouter des élèves à ces classes en saisissant leur nom et prénom. L'utilisateur est d'abord invité à définir le nombre de classes à créer. Pour chaque classe, le programme demande le nombre d'élèves à ajouter, puis procède à l'insertion des données dans la base de données. Une fois toutes les opérations effectuées, la connexion à la base de données se ferme automatiquement. Avant de lancer le programme, assurez-vous que Python est installé sur votre système ainsi que le module `mysql-connector-python`. De plus, configurez une base de données MySQL locale nommée `projetinfo` avec les tables nécessaires. Manipulez les informations de connexion avec précaution.
+\subsection{Saisie de salles}
+( si jamais vous rencontrez des problèmes cliquez sur " \href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/projetSALLES.py}{projetSALLES.py}")\\
+Cette partie permet d'ajouter de nouvelles salles. L'utilisateur est invité à saisir le nombre de salles à créer ainsi que la capacité commune pour toutes les salles. Ensuite, pour chaque salle, l'utilisateur entre son nom, puis il est guidé pour saisir les disponibilités de chaque salle pour chaque jour de la semaine et chaque heure disponible. Les disponibilités sont ensuite insérées dans la base de données. 
+\subsection{Saisie Cours étudiants et génération du fichier python})\\
+
+
+Dans le programme, lorsque vous choisissez cette option, le programme va exécuter les étapes suivantes :
+
+\begin{enumerate}
+    \item Il récupère les cours des professeurs depuis la base de données en appelant la fonction \texttt{get\_professor\_courses}.
+    \item Il organise ces cours dans une structure de données appelée \texttt{timetable} en appelant la fonction \texttt{organize\_professor\_courses}.
+    \item Il crée un fichier Excel avec les données de l'emploi du temps en appelant la fonction \texttt{create\_professor\_excel\_file}.
+\end{enumerate}
+
+Ce fichier Excel contiendra les heures de la journée en ligne et les jours de la semaine en colonne. Chaque cellule représentera les cours planifiés pour ce créneau horaire, indiquant la matière et la salle.
+
+\subsection{Fin du saisie}
+Lorque vous appuyez sur '5' cela stop tout le programme et affiche un message pour vous dire au revoir.
+\subsection{Bonus: Nettoyage}
+Cliquez ici pour voir la partie associée: " \href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/NETTOYAGE.py}{NETTOYAGE.py}"\\
+Pour ne pas avoir énormement de données dans nos tables nous avons créés un programme permettant de réinitialisé, voici la démarche:\\
+
+\item \textbf{Connexion à la base de données :} Le programme commence par se connecter à la base de données MySQL en utilisant les informations d'identification fournies (hôte, nom d'utilisateur, mot de passe et nom de la base de données).
+    
+    \item \textbf{Désactivation des contraintes de clé étrangère :} Les contraintes de clé étrangère sont temporairement désactivées. Cela permet de supprimer les enregistrements des tables sans déclencher d'erreurs dues aux contraintes de clé étrangère.
+    
+    \item \textbf{Suppression des enregistrements :} Le programme parcourt une liste de tables prédéfinies et supprime tous les enregistrements de chaque table à l'aide de la requête SQL \texttt{DELETE FROM table\_name}. Il commit ensuite les modifications à la base de données. En cas d'erreur lors de la suppression, il effectue un rollback pour annuler les modifications.
+    
+    \item \textbf{Réactivation des contraintes de clé étrangère :} Une fois que les enregistrements ont été supprimés, les contraintes de clé étrangère sont réactivées.
+    
+    \item \textbf{Réinitialisation des compteurs d'auto-incrémentation :} Pour chaque table, le programme réinitialise le compteur d'auto-incrémentation à 1. Cela garantit que les futurs enregistrements auront des identifiants uniques et continueront à s'incrémenter à partir de 1.
+    
+    \item \textbf{Gestion des erreurs :} Le programme gère les erreurs MySQL en affichant un message d'erreur et en effectuant un rollback en cas d'échec.
+    
+    \item \textbf{Fermeture de la connexion :} Enfin, le programme ferme la connexion à la base de données une fois toutes les opérations terminées, en veillant à gérer toute erreur éventuelle.
+\end{enumerate}
+
+Ce programme est utile pour réinitialiser les tables de la base de données, en particulier dans un environnement de développement ou de test, où il est nécessaire de nettoyer les données existantes sans supprimer la structure de la base de données elle-même.
+
+	\section{Exemple d'exécution du projet}
+ Pour cette partie nous avons la possibilité de vous donner une version Faker/random de notre projet mais qui ignore la génération de classes qui vise à montrer notre affichage optimal. Ne faites pas attention aux noms qui sont bizarres. Pour ce programme nous passons outre de la saisie des profs,des salles, et des matieres. Voici le programme si vous voulez tester,  veuillez cliquer ici: \href{https://github.com/Roudiger/Projet-Emploi-du-temps-/blob/main/PROJETFINALEVFAKER.py}{PROJETFINALEVFAKER.py}\\
+ Exemple d'utilisation:\\
+ 
+\includegraphics[width=0.7\textwidth]{EXCEL.png}
+ \\
+ Mais voici un exemple de ce que nous avons réussi à faire une fois àl'époque de notre côté, mais le problème était le problème de l'association qui se rompt entre le professeur et sa matière:\\
+ \includegraphics[width=0.9\textwidth]{ANCIEN TEST.png}
+
+ 
+
+ 
+\end{document}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+• & • \\ 
+\hline 
+• & • \\ 
+\hline 
+\end{tabular} 
+\end{center}
+\label{referencedutableau}
+
+\caption{Titre du tableau : légende du tableau}
+\end{table}
+Et ne jamais oublier que lorsqu'on place un tableau, on doit l'utiliser comme ici avec le tableau Table \ref{referencedutableau}. et on fait la meme chose avec une image, comme avec la Figure \ref{Tux}.
+
+\begin{figure}[h]
+\centering
+\includegraphics{Tux.png}
+\caption{Tux, le pingouin}
+\label{Tux}
+\end{figure}
