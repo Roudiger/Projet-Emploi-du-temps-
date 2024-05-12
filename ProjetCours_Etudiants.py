@@ -145,7 +145,7 @@ def main():
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Utopie39*",
+        password="mdp",
         database="projetinfo"
     )
     if not conn:
