@@ -6,7 +6,7 @@ def connect_to_database():
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Utopie39*",
+            password="mdp",
             database="projetinfo"
         )
         print("Connexion à la base de données réussie.")
